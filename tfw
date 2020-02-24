@@ -1,0 +1,64 @@
+#!/usr/bin/env bash
+
+set -Eeuo pipefail
+
+TFENV_CMD=tfenv
+TF_CMD=terraform
+TERRAFORM_WORKSPACE_FILE=.terraform/environment
+TERRAFORM_WORKSPACE_VARS=
+TFW_WORKSPACES_DIR=workspaces
+
+haveVars=0
+
+if [ "$($TFENV_CMD 2>&1 | head -c 5)" != "tfenv" ]; then
+  (>&2 echo "Could not confirm tfenv is available.")
+  (>&2 echo "Please install tfenv and make sure to have it in your PATH environment variable.")
+  exit 1
+fi
+
+$TFENV_CMD use min-required
+
+command=
+newArgs=()
+
+if [[ $# -gt 0 ]]; then
+  command="$1"
+  case $command in
+    plan|apply|destroy|console|refresh|import)
+      haveVars=1
+    ;;
+    *)
+      newArgs+=( "$@" )
+    ;;
+  esac
+fi
+
+if [ -f $TERRAFORM_WORKSPACE_FILE ]; then
+  TERRAFORM_WORKSPACE=$(cat $TERRAFORM_WORKSPACE_FILE)
+  echo "Workspace: $TERRAFORM_WORKSPACE"
+  if [[ haveVars -eq 1 ]]; then
+    TERRAFORM_WORKSPACE_VARS_FILE="$TFW_WORKSPACES_DIR/$TERRAFORM_WORKSPACE.tfvars"
+    if [ -f "$TERRAFORM_WORKSPACE_VARS_FILE" ]; then
+      TERRAFORM_WORKSPACE_VARS="-var-file=$TERRAFORM_WORKSPACE_VARS_FILE"
+    else
+      (>&2 echo "ERROR: No variables file found: $TERRAFORM_WORKSPACE_VARS_FILE")
+      exit 3
+    fi
+    newArgs+=( "$command" )
+    if [ "$TERRAFORM_WORKSPACE_VARS" != "" ]; then
+      newArgs+=( "$TERRAFORM_WORKSPACE_VARS" )
+    fi
+    newArgs+=( "${@:2}" )
+  fi
+else
+  if [[ haveVars -eq 1 ]]; then
+    (>&2 echo "No workspace detected.")
+    exit 2
+  fi
+fi
+
+echo ""
+echo ">>" "$TF_CMD" ${newArgs[@]+"${newArgs[@]}"}
+echo ""
+
+$TF_CMD ${newArgs[@]+"${newArgs[@]}"}
