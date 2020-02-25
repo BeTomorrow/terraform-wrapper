@@ -22,6 +22,8 @@ ln -s `pwd`/tfw /usr/local/bin/tfw
 
 # Use
 
+Make sure you have expected Terraform version installed with `tfenv install min-required` in your terraform folder.
+
 Create a `workspaces/<workspace>.tfvars` file for your workspaces in your root module.
 
 Use `tfw` instead of `terraform`. It runs `tfenv use min-required` first then will forward command to `terraform`
