@@ -4,7 +4,13 @@ Minimalist Terraform wrapper to help with Terraform version and variables per wo
 
 OSX, bash compatible shell, [tfenv](https://github.com/tfutils/tfenv).
 
-# Install
+# Homebrew Install
+
+```
+brew install betomorrow/draft/terraform-wrapper
+```
+
+# Manual Install
 
 Checkout this repo, give the `tfw` script `+x` permission and add the directory to your `PATH` variable
 or add a symbolic link for example in your `/usr/local/bin`:
